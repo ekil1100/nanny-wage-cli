@@ -1,4 +1,9 @@
-import { assert, differenceInCalendarDays, subMonths } from './deps.ts';
+import {
+    addDays,
+    assert,
+    differenceInCalendarDays,
+    subMonths,
+} from './deps.ts';
 
 const WAGE_DEFAULT = 7500;
 const WAGE_PER_DAY = 288;
@@ -8,14 +13,17 @@ const DAY = 17;
 function main(year: number, month: number, off = 0, fes = 0) {
     const today = new Date(year, month - 1, DAY);
     const lastMonth = subMonths(1)(today);
-    const diff = differenceInCalendarDays(lastMonth, today) - off;
+    const diff = differenceInCalendarDays(lastMonth, today);
+    const worked = diff - off;
     const fesWage = fes * WAGE_PER_DAY;
+
     let wage = fesWage;
-    if (diff > WAGE_DAYS) {
-        const dayLeft = diff - WAGE_DAYS;
-        wage += WAGE_DEFAULT + dayLeft * WAGE_PER_DAY;
+
+    if (worked > WAGE_DAYS) {
+        const days = worked - WAGE_DAYS;
+        wage += WAGE_DEFAULT + days * WAGE_PER_DAY;
     } else {
-        const days = WAGE_DAYS - diff;
+        const days = WAGE_DAYS - worked;
         wage += days === 0 ? WAGE_DEFAULT : days * WAGE_PER_DAY;
     }
 
@@ -25,18 +33,31 @@ function main(year: number, month: number, off = 0, fes = 0) {
         day: 'numeric',
     };
 
-    console.log(
-        `从${lastMonth.toLocaleDateString('zh', options)}到${
-            today.toLocaleDateString('zh', options)
-        }，共计 ${diff} 天，休息 ${off} 天，节假日 ${fes} 天，总计工资 ¥${wage}。`,
-    );
+    const startDate = (addDays(1)(lastMonth)).toLocaleDateString('en', options);
+    const endDate = today.toLocaleDateString('en', options);
+    const days = (day: number) => day > 1 ? 'days' : 'day';
+    const holidays = fes > 1 ? 'holidays' : 'holiday';
+    const output = `During [${startDate}, ${endDate}] has ${diff} ${
+        days(diff)
+    }, worked ${worked} ${days(worked)}, ${off} ${
+        days(off)
+    } off，${fes} ${holidays}, need to pay ¥${wage}。`;
+
+    console.log(output);
+
     return wage;
 }
 
-const year = parseInt(prompt('What year? (default: 2022)') || '2022');
-const month = parseInt(prompt('What month? (default: 1)') || '1');
-const off = parseInt(prompt('How many days off? (default: 0)') || '0');
-const fes = parseInt(prompt('How many holidays? (default: 0)') || '0');
+const year = parseInt(
+    prompt('Which year right now? (default: 2022)') || '2022',
+);
+const month = parseInt(prompt('Which month right now? (default: 1)') || '1');
+const off = parseInt(
+    prompt('How many days off during this period? (default: 0)') || '0',
+);
+const fes = parseInt(
+    prompt('How many holidays during this period? (default: 0)') || '0',
+);
 main(year, month, off, fes);
 
 Deno.test('year should be a number', () => {

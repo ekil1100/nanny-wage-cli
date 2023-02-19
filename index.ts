@@ -5,23 +5,15 @@ const WAGE_PER_DAY = 288;
 const WAGE_DAYS = 26;
 const DAY = 17;
 
-function main(month: number, off = 0, fes = 0) {
+function main(month: number, daysOff = 0, holiday = 0) {
     const year = new Date().getFullYear();
-    const today = new Date(year, month - 1, DAY);
-    const lastMonth = subMonths(1)(today);
-    const diff = differenceInCalendarDays(lastMonth, today);
-    const worked = diff - off;
-    const fesWage = fes * WAGE_PER_DAY;
+    const dayToPay = new Date(year, month - 1, DAY);
+    const startDay = subMonths(1)(dayToPay);
+    const diff = differenceInCalendarDays(startDay, dayToPay);
+    const worked = diff - daysOff;
 
-    let wage = fesWage;
-
-    if (worked > WAGE_DAYS) {
-        const days = worked - WAGE_DAYS;
-        wage += WAGE_DEFAULT + days * WAGE_PER_DAY;
-    } else {
-        const days = WAGE_DAYS - worked;
-        wage += days === 0 ? WAGE_DEFAULT : days * WAGE_PER_DAY;
-    }
+    const wage = holiday * WAGE_PER_DAY + WAGE_DEFAULT +
+        (worked - WAGE_DAYS) * WAGE_PER_DAY;
 
     const options: Intl.DateTimeFormatOptions = {
         year: 'numeric',
@@ -29,10 +21,10 @@ function main(month: number, off = 0, fes = 0) {
         day: 'numeric',
     };
 
-    const startDate = (addDays(1)(lastMonth)).toLocaleDateString('zh', options);
-    const endDate = today.toLocaleDateString('zh', options);
+    const startDate = (addDays(1)(startDay)).toLocaleDateString('zh', options);
+    const endDate = dayToPay.toLocaleDateString('zh', options);
     const output =
-        `\n${startDate}到${endDate}一共有 ${diff} 天，工作 ${worked} 天, 休息 ${off} 天，节假日 ${fes} 天, 工资共 ¥${wage}。`;
+        `\n${startDate}到${endDate}一共有 ${diff} 天，工作 ${worked} 天, 休息 ${daysOff} 天，节假日 ${holiday} 天, 工资共 ¥${wage}。`;
 
     console.log(output);
 
